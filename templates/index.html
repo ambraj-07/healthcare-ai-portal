@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HealthCore AI - Patient Clinical Dashboard</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --radius: 12px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--background);
+            color: var(--text-main);
+            margin: 0;
+            padding: 30px 20px;
+            line-height: 1.5;
+        }
+
+        .portal-wrapper {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            background: var(--surface);
+            padding: 12px 24px;
+            border-radius: var(--radius);
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            border: 1px solid var(--border);
+            position: relative;
+        }
+
+        .nav-brand { 
+            font-weight: 700; 
+            font-size: 18px; 
+            color: var(--primary); 
+            text-decoration: none; 
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .nav-links { display: flex; gap: 20px; align-items: center; }
+        .nav-links a { color: var(--text-muted); text-decoration: none; font-weight: 500; font-size: 14px; transition: color 0.2s; }
+        .nav-links a:hover, .nav-links a.active { color: var(--primary); font-weight: 600; }
+
+        /* User Profile Avatar & Dropdown (Top-Right) */
+        .profile-container {
+            position: relative;
+        }
+
+        .profile-trigger {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: #f1f5f9;
+            padding: 6px 12px 6px 6px;
+            border-radius: 30px;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            transition: all 0.2s ease;
+        }
+
+        .profile-trigger:hover {
+            background: #e2e8f0;
+        }
+
+        .avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563eb, #1d4ed8);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            text-transform: uppercase;
+            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.2);
+        }
+
+        .profile-info {
+            text-align: left;
+        }
+
+        .profile-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-main);
+            line-height: 1.2;
+        }
+
+        .profile-role {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* Profile Dropdown Menu */
+        .profile-dropdown {
+            position: absolute;
+            top: 50px;
+            right: 0;
+            width: 220px;
+            background: var(--surface);
+            border-radius: var(--radius);
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+            padding: 12px 0;
+            display: none;
+            z-index: 100;
+        }
+
+        .profile-dropdown.show {
+            display: block;
+        }
+
+        .dropdown-header {
+            padding: 8px 16px 12px 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .dropdown-email {
+            font-size: 12px;
+            color: var(--text-muted);
+            word-break: break-all;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            color: var(--text-main);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background: #f8fafc;
+            color: var(--primary);
+        }
+
+        .dropdown-item.logout {
+            color: #ef4444;
+            border-top: 1px solid var(--border);
+            margin-top: 4px;
+            padding-top: 10px;
+        }
+
+        .dropdown-item.logout:hover {
+            background: #fef2f2;
+        }
+
+        /* Vitals Grid Bar */
+        .vitals-bar-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            gap: 16px;
+        }
+
+        .vitals-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+            flex-grow: 1;
+        }
+
+        .vital-card {
+            background: var(--surface);
+            padding: 14px;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 2px rgb(0 0 0 / 0.03);
+            text-align: center;
+        }
+
+        .vital-title { font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; margin-bottom: 4px; }
+        .vital-value { font-size: 18px; font-weight: 700; color: var(--text-main); }
+
+        .btn-edit-vitals {
+            background: #ffffff;
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 14px 18px;
+            border-radius: var(--radius);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+        .btn-edit-vitals:hover { background: #eff6ff; }
+
+        /* Container Card */
+        .container {
+            background: var(--surface);
+            padding: 32px;
+            border-radius: var(--radius);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05);
+            border: 1px solid var(--border);
+            margin-bottom: 24px;
+        }
+
+        h2 { margin-top: 0; font-size: 22px; font-weight: 700; color: var(--text-main); margin-bottom: 6px; }
+        .subtitle { color: var(--text-muted); font-size: 14px; margin-bottom: 20px; }
+        label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+
+        input, select { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; box-sizing: border-box; font-size: 14px; background: #fff; }
+        input:focus, select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+
+        /* Symptom Checklist Box */
+        .search-box { margin-bottom: 12px; }
+        .symptom-list {
+            max-height: 380px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            padding: 16px;
+            margin-bottom: 24px;
+            border-radius: 8px;
+            background: #fafafa;
+        }
+        .symptom-list::-webkit-scrollbar { width: 6px; }
+        .symptom-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+
+        .symptom-item { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: 14px; text-transform: capitalize; color: #334155; cursor: pointer; }
+        .symptom-item input { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; }
+
+        button.btn-primary {
+            background: var(--primary); color: white; border: none; padding: 14px 20px; border-radius: 8px; cursor: pointer; font-size: 15px; font-weight: 600; width: 100%;
+            transition: background 0.2s, transform 0.1s; box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+        }
+        button.btn-primary:hover { background: var(--primary-hover); }
+
+        /* Slide-over Drawer Styles */
+        .drawer-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(2px);
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .drawer-overlay.active { opacity: 1; visibility: visible; }
+
+        .drawer {
+            position: fixed;
+            top: 0; right: -420px; width: 380px; height: 100%;
+            background: var(--surface);
+            box-shadow: -4px 0 25px rgba(0, 0, 0, 0.15);
+            z-index: 1001;
+            padding: 30px;
+            box-sizing: border-box;
+            transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            overflow-y: auto;
+        }
+        .drawer.active { right: 0; }
+
+        .drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 16px; }
+        .drawer-title { font-size: 18px; font-weight: 700; color: var(--text-main); margin: 0; }
+        .close-btn { background: none; border: none; font-size: 20px; cursor: pointer; color: var(--text-muted); }
+
+        .drawer-form-group { margin-bottom: 16px; }
+
+        /* Cards & Badges */
+        .result-box { margin-top: 24px; padding: 20px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; }
+        .result-box h3 { margin-top: 0; font-size: 15px; color: #166534; font-weight: 700; margin-bottom: 12px; }
+        
+        .prediction-card, .list-card {
+            background: white; padding: 14px 16px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #e2e8f0; border-left: 4px solid var(--primary); box-shadow: 0 1px 2px rgb(0 0 0 / 0.03);
+        }
+        .card-header { display: flex; justify-content: space-between; font-weight: 700; font-size: 15px; margin-bottom: 6px; }
+        .card-details { font-size: 13px; color: var(--text-muted); display: flex; justify-content: space-between; align-items: center; }
+
+        .badge { padding: 3px 10px; border-radius: 20px; color: white; font-size: 11px; font-weight: 700; text-transform: uppercase; }
+        .badge-high { background-color: #ef4444; }
+        .badge-moderate { background-color: #f59e0b; }
+        .badge-normal { background-color: #0ea5e9; }
+
+        .empty-state { text-align: center; color: var(--text-muted); font-size: 14px; padding: 16px; font-style: italic; }
+        .error { margin-top: 20px; padding: 14px; background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; font-weight: 600; font-size: 14px; border-radius: 8px; text-align: center; }
+    </style>
+    <script>
+        function toggleProfileMenu() {
+            document.getElementById('profileDropdown').classList.toggle('show');
+        }
+
+        window.onclick = function(event) {
+            if (!event.target.closest('.profile-container')) {
+                var dropdown = document.getElementById('profileDropdown');
+                if (dropdown && dropdown.classList.contains('show')) {
+                    dropdown.classList.remove('show');
+                }
+            }
+        }
+
+        function toggleDrawer() {
+            document.getElementById('drawerOverlay').classList.toggle('active');
+            document.getElementById('vitalsDrawer').classList.toggle('active');
+            var dropdown = document.getElementById('profileDropdown');
+            if (dropdown) dropdown.classList.remove('show');
+        }
+
+        function filterSymptoms() {
+            let input = document.getElementById('symptomSearch').value.toLowerCase();
+            let items = document.getElementsByClassName('symptom-item');
+            for (let i = 0; i < items.length; i++) {
+                let text = items[i].textContent || items[i].innerText;
+                items[i].style.display = text.toLowerCase().indexOf(input) > -1 ? "flex" : "none";
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="portal-wrapper">
+        <!-- Enterprise Navigation Bar -->
+        <nav class="navbar">
+            <a href="/" class="nav-brand">🏥 HealthCore AI</a>
+            
+            <div class="nav-links">
+                <a href="/" class="{% if active_tab == 'checker' %}active{% endif %}">Dashboard & Checker</a>
+                <a href="/doctors" class="{% if active_tab == 'doctors' %}active{% endif %}">Find Doctors</a>
+                <a href="/hospitals" class="{% if active_tab == 'hospitals' %}active{% endif %}">Hospital Locator</a>
+            </div>
+
+            <!-- Top-Right User Avatar Profile Component -->
+            <div class="profile-container">
+                <div class="profile-trigger" onclick="toggleProfileMenu()">
+                    <div class="avatar">{{ user.username[0] }}</div>
+                    <div class="profile-info">
+                        <div class="profile-name">{{ user.username }}</div>
+                        <div class="profile-role">Patient Account</div>
+                    </div>
+                </div>
+
+                <!-- Dropdown Menu -->
+                <div class="profile-dropdown" id="profileDropdown">
+                    <div class="dropdown-header">
+                        <div class="profile-name" style="font-size: 14px;">{{ user.username }}</div>
+                        <div class="dropdown-email">{{ user.email }}</div>
+                    </div>
+                    <div class="dropdown-item" onclick="toggleDrawer()">
+                        ⚙️ Patient Vitals Settings
+                    </div>
+                    <a href="/logout" class="dropdown-item logout">
+                        🚪 Sign Out
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Top Vitals Summary Bar & Drawer Trigger -->
+        <div class="vitals-bar-container">
+            <div class="vitals-grid">
+                <div class="vital-card">
+                    <div class="vital-title">Gender</div>
+                    <div class="vital-value" style="font-size: 15px; margin-top: 2px;">{{ user.gender }}</div>
+                </div>
+                <div class="vital-card">
+                    <div class="vital-title">BMI Index</div>
+                    <div class="vital-value">{{ bmi if bmi > 0 else 'N/A' }}</div>
+                </div>
+                <div class="vital-card">
+                    <div class="vital-title">Blood Pressure</div>
+                    <div class="vital-value">{{ user.blood_pressure }}</div>
+                </div>
+                <div class="vital-card">
+                    <div class="vital-title">Heart Rate</div>
+                    <div class="vital-value">{{ user.heart_rate }} <span style="font-size: 11px; color: var(--text-muted);">BPM</span></div>
+                </div>
+                <div class="vital-card">
+                    <div class="vital-title">Blood Sugar</div>
+                    <div class="vital-value">{{ user.blood_sugar }} <span style="font-size: 11px; color: var(--text-muted);">mg/dL</span></div>
+                </div>
+            </div>
+            <button class="btn-edit-vitals" onclick="toggleDrawer()">⚙️ Update Vitals</button>
+        </div>
+
+        {% if active_tab == 'checker' %}
+            <!-- Main Symptom Checker View -->
+            <div class="container">
+                <h2>AI Clinical Risk Assessment Dashboard</h2>
+                <p class="subtitle">Select your symptoms from the list below to run a differential risk evaluation and match with clinical specialists.</p>
+                
+                <form action="/predict" method="POST">
+                    <label>Select Symptoms (Minimum 3 required):</label>
+                    <div class="search-box">
+                        <input type="text" id="symptomSearch" onkeyup="filterSymptoms()" placeholder="🔍 Search 130+ symptoms (e.g. fever, headache, chest pain)...">
+                    </div>
+                    <div class="symptom-list">
+                        {% for symptom in symptoms %}
+                            <label class="symptom-item">
+                                <input type="checkbox" name="symptoms" value="{{ symptom }}"> 
+                                <span>{{ symptom.replace('_', ' ') }}</span>
+                            </label>
+                        {% endfor %}
+                    </div>
+                    <button type="submit" class="btn-primary">Run Clinical Risk Analysis</button>
+                </form>
+                
+                {% if predictions %}
+                    <div class="result-box">
+                        <h3>Top Potential Risk Matches & Recommendations</h3>
+                        {% for pred in predictions %}
+                            <div class="prediction-card">
+                                <div class="card-header">
+                                    <span>{{ pred.disease }}</span>
+                                    <span style="color: var(--primary);">{{ pred.probability }}% Match</span>
+                                </div>
+                                <div class="card-details">
+                                    <span><strong>Specialist:</strong> {{ pred.specialist }}</span>
+                                    <span class="badge {{ pred.badge_class }}">{{ pred.urgency }}</span>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                {% if error_text %}
+                    <div class="error">{{ error_text }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Saved Records History -->
+            <div class="container" style="background: #f8fafc;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <div>
+                        <h2>Saved Medical Records History</h2>
+                        <p class="subtitle" style="margin-bottom: 0;">Audit trail of prior risk evaluations recorded under your patient account.</p>
+                    </div>
+                    {% if records %}
+                        <a href="/clear_history" style="background: #fee2e2; color: #dc2626; border: 1px solid #fecaca; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; transition: background 0.2s;">🗑️ Clear History</a>
+                    {% endif %}
+                </div>
+                
+                {% if records %}
+                    {% for rec in records %}
+                        <div class="prediction-card" style="border-left-color: var(--primary);">
+                            <div class="card-header">
+                                <span>{{ rec.disease }}</span>
+                                <span style="color: var(--primary);">{{ rec.probability }}% Match</span>
+                            </div>
+                            <div class="card-details">
+                                <span><strong>Specialist:</strong> {{ rec.specialist }}</span>
+                                <span class="badge badge-moderate">{{ rec.urgency }}</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">No past medical assessment logs found. Run your first symptom risk check above!</div>
+                {% endif %}
+            </div>
+
+        {% elif active_tab == 'doctors' %}
+            <!-- Doctors Directory View -->
+            <div class="container">
+                <h2>Verified Medical Specialist Directory</h2>
+                <p class="subtitle">Qualified experts matched to your clinical assessment profiles with direct contact information.</p>
+                {% for doc in doctors %}
+                    <div class="list-card" style="margin-bottom: 16px;">
+                        <div class="card-header">
+                            <span>{{ doc.name }}</span> 
+                            <span style="color: var(--primary); font-size: 14px;">{{ doc.specialty }}</span>
+                        </div>
+                        <div class="card-details" style="display: block; margin-top: 8px; line-height: 1.6;">
+                            <strong>Qualifications:</strong> {{ doc.qualification }}<br>
+                            <strong>Clinic/Location:</strong> {{ doc.location }}<br>
+                            <strong>Availability:</strong> {{ doc.availability }}<br>
+                            <strong>Contact:</strong> <a href="tel:{{ doc.phone }}" style="color: var(--primary); text-decoration: none; font-weight: 600;">{{ doc.phone }}</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+        {% elif active_tab == 'hospitals' %}
+            <!-- Hospital Locator View -->
+            <div class="container">
+                <h2>Accredited Partner Hospital Locator</h2>
+                <p class="subtitle">Nearby medical facilities and 24/7 emergency care centers.</p>
+                {% for hosp in hospitals %}
+                    <div class="list-card" style="border-left-color: #22c55e; margin-bottom: 16px;">
+                        <div class="card-header">
+                            <span>{{ hosp.name }}</span> 
+                            <span class="badge badge-high">Emergency: {{ hosp.emergency }}</span>
+                        </div>
+                        <div class="card-details" style="display: block; margin-top: 8px; line-height: 1.6;">
+                            <strong>Location:</strong> {{ hosp.location }}<br>
+                            <strong>Contact:</strong> <a href="tel:{{ hosp.contact }}" style="color: var(--primary); text-decoration: none; font-weight: 600;">{{ hosp.contact }}</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- Sliding Drawer Overlay & Panel for Vitals Input -->
+    <div class="drawer-overlay" id="drawerOverlay" onclick="toggleDrawer()"></div>
+    <div class="drawer" id="vitalsDrawer">
+        <div class="drawer-header">
+            <h3 class="drawer-title">Patient Profile & Vitals</h3>
+            <button class="close-btn" onclick="toggleDrawer()">&times;</button>
+        </div>
+        <form action="/update_vitals" method="POST">
+            <div class="drawer-form-group">
+                <label>Gender</label>
+                <select name="gender">
+                    <option value="Male" {% if user.gender == 'Male' %}selected{% endif %}>Male</option>
+                    <option value="Female" {% if user.gender == 'Female' %}selected{% endif %}>Female</option>
+                    <option value="Other" {% if user.gender == 'Other' %}selected{% endif %}>Other</option>
+                </select>
+            </div>
+            <div class="drawer-form-group">
+                <label>Height (cm)</label>
+                <input type="number" step="0.1" name="height" value="{{ user.height }}">
+            </div>
+            <div class="drawer-form-group">
+                <label>Weight (kg)</label>
+                <input type="number" step="0.1" name="weight" value="{{ user.weight }}">
+            </div>
+            <div class="drawer-form-group">
+                <label>Blood Pressure (e.g. 120/80)</label>
+                <input type="text" name="blood_pressure" value="{{ user.blood_pressure }}">
+            </div>
+            <div class="drawer-form-group">
+                <label>Heart Rate (BPM)</label>
+                <input type="number" name="heart_rate" value="{{ user.heart_rate }}">
+            </div>
+            <div class="drawer-form-group">
+                <label>Blood Sugar (mg/dL)</label>
+                <input type="number" name="blood_sugar" value="{{ user.blood_sugar }}">
+            </div>
+            <button type="submit" class="btn-primary" style="margin-top: 10px;">Save Vitals</button>
+        </form>
+    </div>
+</body>
+</html>

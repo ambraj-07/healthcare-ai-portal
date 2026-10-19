@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Hospital Locator - Healthcare Portal</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f6f9; padding: 30px; margin: 0; }
+        .navbar { background: #007bff; padding: 15px; text-align: center; margin-bottom: 30px; border-radius: 6px; }
+        .navbar a { color: white; text-decoration: none; margin: 0 20px; font-weight: bold; font-size: 16px; }
+        .navbar a:hover { text-decoration: underline; }
+        .container { max-width: 750px; background: white; padding: 25px; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin: auto; }
+        .hospital-card { background: #fafafa; border: 1px solid #ddd; padding: 15px; margin-bottom: 15px; border-radius: 6px; border-left: 5px solid #28a745; }
+        .hosp-name { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 5px; }
+        .hosp-info { font-size: 14px; color: #555; margin-bottom: 4px; }
+        .emergency-badge { display: inline-block; background: #d9534f; color: white; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="navbar">
+            <a href="/">Symptom Checker</a>
+            <a href="/doctors">Find Doctors</a>
+            <a href="/hospitals">Hospital Locator</a>
+        </div>
+        
+        <h2>Emergency & Partner Hospital Locator</h2>
+        <p>Locate accredited healthcare facilities and 24/7 emergency care centers near you.</p>
+        
+        {% for hosp in hospitals %}
+            <div class="hospital-card">
+                <div class="hosp-name">{{ hosp.name }}</div>
+                <div class="hosp-info"><strong>Location:</strong> {{ hosp.location }}</div>
+                <div class="hosp-info"><strong>Contact:</strong> {{ hosp.contact }}</div>
+                <div class="emergency-badge">Emergency: {{ hosp.emergency }}</div>
+            </div>
+        {% endfor %}
+    </div>
+</body>
+</html>
